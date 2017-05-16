@@ -33,6 +33,8 @@ class ResourceAttributesMixin(object):
         if item.startswith("_"):
             raise AttributeError(item)
 
+        item = item.replace('_', '-')
+
         kwargs = copy_kwargs(self._store)
         kwargs.update({"base_url": url_join(self._store["base_url"], item)})
 
@@ -90,8 +92,8 @@ class Resource(ResourceAttributesMixin, object):
         headers = {"accept": serializer.get_content_type()}
 
         if not files:
+            # headers["content-type"] = serializer.get_content_type()
             if data is not None:
-                headers["content-type"] = serializer.get_content_type()
                 data = serializer.dumps(data)
 
         resp = self._store["session"].request(method, url, data=data, params=params, files=files, headers=headers)
