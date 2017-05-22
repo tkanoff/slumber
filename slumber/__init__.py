@@ -99,8 +99,9 @@ class Resource(ResourceAttributesMixin, object):
         resp = self._store["session"].request(method, url, data=data, params=params, files=files, headers=headers)
 
         if 400 <= resp.status_code <= 499:
-            exception_class = exceptions.HttpNotFoundError if resp.status_code == 404 else exceptions.HttpClientError
-            raise exception_class("Client Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
+            return resp
+            # exception_class = exceptions.HttpNotFoundError if resp.status_code == 404 else exceptions.HttpClientError
+            # raise exception_class("Client Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
         elif 500 <= resp.status_code <= 599:
             raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
 
@@ -138,6 +139,8 @@ class Resource(ResourceAttributesMixin, object):
 
     def _process_response(self, resp):
         if 200 <= resp.status_code <= 299:
+            decoded = self._try_to_serialize_response(resp)
+        elif resp.status_code in [403, 404]:
             decoded = self._try_to_serialize_response(resp)
         else:
             # @@@ We should probably do some sort of error here? (Is this even possible?)
